@@ -1,0 +1,17 @@
+# Local development only. Never used for staging or production.
+services:
+  todobot:
+    build:
+      context: .
+      target: dev
+    env_file: .env
+    environment:
+      DB_PATH: /app/data/todobot.db
+    volumes:
+      - .:/app
+      - todobot-data:/app/data
+    ports:
+      - "8080:8080"
+
+volumes:
+  todobot-data:

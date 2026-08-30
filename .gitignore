@@ -1,0 +1,10 @@
+.env
+.tmp/
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Plaintext secrets. Only the SOPS-encrypted secrets.enc.yaml is committed.
+k8s/secrets.yaml
+.env.secrets
