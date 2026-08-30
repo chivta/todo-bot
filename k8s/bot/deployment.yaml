@@ -33,7 +33,7 @@ spec:
         - name: todobot
           # Rewritten by the CD workflow on every deploy. The sed there matches
           # this exact shape, so keep it on one line.
-          image: ghcr.io/chivta/todo-bot:placeholder
+          image: ghcr.io/chivta/todo-bot:dc4ad8330afc0bd4fc8d9e14fcb8616a6e6dbdff
           ports:
             - name: http
               containerPort: 8080
