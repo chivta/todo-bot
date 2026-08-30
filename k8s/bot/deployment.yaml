@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todobot
+  namespace: todobot
+  labels:
+    app: todobot
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  # The SQLite file lives on a ReadWriteOnce volume, so the old pod must be gone
+  # before the new one starts. A rolling update would deadlock on the mount, and
+  # Telegram allows only one long-polling consumer per token anyway.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: todobot
+  template:
+    metadata:
+      labels:
+        app: todobot
+    spec:
+      # Long enough for a list that is already being written to finish and
+      # reach the user; anything slower is cut off and they simply ask again.
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: todobot
+          # Rewritten by the CD workflow on every deploy. The sed there matches
+          # this exact shape, so keep it on one line.
+          image: ghcr.io/chivta/todo-bot:placeholder
+          ports:
+            - name: http
+              containerPort: 8080
+          # BOT_TOKEN, ALLOWED_USERS, CLAUDE_API_KEY and OPENAI_API_KEY.
+          envFrom:
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: DB_PATH
+              value: /app/data/todobot.db
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            # readOnlyRootFilesystem still needs somewhere to write scratch.
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          # Startup is a migration against a local file and one getMe call, so
+          # a minute of headroom is generous. The probe still holds liveness off
+          # until it succeeds.
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: todobot
+        - name: tmp
+          emptyDir: { sizeLimit: 256Mi }
+      imagePullSecrets:
+        - name: ghcr-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todobot-svc
+  namespace: todobot
+  labels:
+    app: todobot
+spec:
+  selector:
+    app: todobot
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

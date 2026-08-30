@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: todobot
+  namespace: todobot
+  labels:
+    app: todobot
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      # The database holds one row per list message: a few KB per user per
+      # month. This is the smallest claim worth making, not a real estimate.
+      storage: 1Gi

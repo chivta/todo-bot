@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todobot
+  namespace: todobot
+  labels:
+    app: todobot
+spec:
+  selector:
+    matchLabels:
+      app: todobot
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
