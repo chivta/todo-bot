@@ -88,8 +88,10 @@ spec:
             claimName: todobot
         - name: tmp
           emptyDir: { sizeLimit: 256Mi }
-      imagePullSecrets:
-        - name: ghcr-secret
+      # No imagePullSecrets: the repo is public, so GHCR serves this image
+      # anonymously. Attaching a credential is not merely redundant here, it
+      # breaks the pull — the kubelet stops pulling anonymously and GHCR
+      # refuses the identity for a package it was not granted.
 
 ---
 apiVersion: v1
