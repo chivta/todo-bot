@@ -3,8 +3,8 @@ creation_rules:
     # Only the values are encrypted, so the file stays reviewable in a diff:
     # you can see that a key changed without being able to read it.
     encrypted_regex: ^(data|stringData)$
-    # The shared ruscan age key, which Flux holds in-cluster as
-    # `ruscan-sops-age`, plus the local dev key so the file can be decrypted
+    # The shared app age key, which Flux holds in-cluster as
+    # `apps-sops-age`, plus the local dev key so the file can be decrypted
     # and edited without the cluster.
     age: >-
       age10d00xrpljw4cga37ad0gt7se4nsehp5uv8yy3grkfqygd4pzyffqj3gr46,
